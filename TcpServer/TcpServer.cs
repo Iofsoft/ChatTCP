@@ -1,25 +1,28 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Collections.Concurrent;
 
-List<TcpClient> clients = new List<TcpClient>();
+ConcurrentBag<TcpClient> clients = new ConcurrentBag<TcpClient>();
 TcpListener server = new TcpListener(IPAddress.Any, 5000);
 server.Start();
 Console.WriteLine("Servidor iniciado na porta 5000...");
 
-while (true)
+await AcceptClientsAsync();
+
+async Task AcceptClientsAsync()
 {
-    TcpClient client = server.AcceptTcpClient();
-    clients.Add(client);
-    Console.WriteLine("Novo cliente conectado.");
-    ParameterizedThreadStart threadStart = new ParameterizedThreadStart(HandleClient);
-    Thread thread = new Thread(threadStart);
-    thread.Start(client);
+    while (true)
+    {
+        TcpClient client = await server.AcceptTcpClientAsync();
+        clients.Add(client);
+        Console.WriteLine("Novo cliente conectado.");
+        _ = HandleClientAsync(client);
+    }
 }
 
-void HandleClient(object? obj)
+async Task HandleClientAsync(TcpClient client)
 {
-    if (obj is not TcpClient client) return;
     NetworkStream stream = client.GetStream();
     byte[] buffer = new byte[1024];
 
@@ -27,7 +30,7 @@ void HandleClient(object? obj)
     {
         while (true)
         {
-            int byteCount = stream.Read(buffer, 0, buffer.Length);
+            int byteCount = await stream.ReadAsync(buffer, 0, buffer.Length);
             if (byteCount == 0) break;
 
             string message = Encoding.UTF8.GetString(buffer, 0, byteCount);
@@ -36,10 +39,14 @@ void HandleClient(object? obj)
             // Envia para todos os outros clientes
             foreach (var c in clients)
             {
-                if (c != client)
+                if (c != client && c.Connected)
                 {
-                    NetworkStream s = c.GetStream();
-                    s.Write(buffer, 0, byteCount);
+                    try
+                    {
+                        NetworkStream s = c.GetStream();
+                        await s.WriteAsync(buffer, 0, byteCount);
+                    }
+                    catch { /* Ignora falhas de envio */ }
                 }
             }
         }
@@ -50,7 +57,8 @@ void HandleClient(object? obj)
     }
     finally
     {
-        clients.Remove(client);
+        // Remove cliente da lista
+        clients = new ConcurrentBag<TcpClient>(clients.Where(c => c != client));
         client.Close();
     }
 }
