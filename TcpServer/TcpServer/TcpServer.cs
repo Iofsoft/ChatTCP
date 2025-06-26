@@ -4,8 +4,9 @@ using System.Text;
 using System.Collections.Concurrent;
 
 ConcurrentBag<TcpClient> clients = new ConcurrentBag<TcpClient>();
-TcpListener server = new TcpListener(IPAddress.Any, 5000);
-server.Start();
+Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+socket.Bind(new IPEndPoint(IPAddress.Any, 5000));
+socket.Listen(100);
 Console.WriteLine("Servidor iniciado na porta 5000...");
 
 await AcceptClientsAsync();
@@ -14,7 +15,8 @@ async Task AcceptClientsAsync()
 {
     while (true)
     {
-        TcpClient client = await server.AcceptTcpClientAsync();
+        Socket clientSocket = await socket.AcceptAsync();
+        TcpClient client = new TcpClient { Client = clientSocket };
         clients.Add(client);
         Console.WriteLine("Novo cliente conectado.");
         _ = HandleClientAsync(client);
