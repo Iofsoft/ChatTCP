@@ -6,14 +6,14 @@ using System.Windows.Forms;
 
 namespace ChatClient
 {
-    public partial class Form1 : Form
+    public partial class ChatWindow : Form
     {
         private TcpClient? client;
         private NetworkStream? stream;
         private Thread? receiveThread;
         private string usuarioNome = "Usuário";
 
-        public Form1()
+        public ChatWindow()
         {
             InitializeComponent();
             SolicitarNomeUsuario();
@@ -48,15 +48,14 @@ namespace ChatClient
                 {
                     txtChat.SelectionStart = txtChat.TextLength;
                     txtChat.SelectionLength = 0;
-                    txtChat.SelectionColor = Color.Blue; // Mensagens recebidas em azul
+                    txtChat.SelectionColor = Color.Blue; 
                     txtChat.AppendText(mensagem + Environment.NewLine);
-                    txtChat.SelectionColor = txtChat.ForeColor; // Reseta a cor
                 }));
             }            
         }
 
 
-        private void btnEnviar_Click(object? sender, EventArgs e)
+        private void EnviarMensagem(object? sender, EventArgs e)
         {
             if (!string.IsNullOrWhiteSpace(txtMensagem.Text) && stream != null)
             {

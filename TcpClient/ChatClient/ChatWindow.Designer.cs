@@ -1,8 +1,7 @@
 ﻿namespace ChatClient
 {
-    partial class Form1
+    partial class ChatWindow
     {
-        // Removed duplicate declarations of txtChat, txtMensagem, and btnEnviar
         private System.Windows.Forms.RichTextBox txtChat;
         private System.Windows.Forms.TextBox txtMensagem;
         private System.Windows.Forms.Button btnEnviar;
@@ -20,7 +19,7 @@
             txtChat.Multiline = true;
             txtChat.Name = "txtChat";
             txtChat.ReadOnly = true;
-            txtChat.ScrollBars = RichTextBoxScrollBars.Vertical; // Fixed type to match RichTextBoxScrollBars
+            txtChat.ScrollBars = RichTextBoxScrollBars.Vertical;
             txtChat.Size = new Size(536, 346);
             txtChat.TabIndex = 0;
             txtChat.TabStop = false;
@@ -43,7 +42,7 @@
             btnEnviar.TabIndex = 2;
             btnEnviar.Text = "Enviar";
             btnEnviar.UseVisualStyleBackColor = true;
-            btnEnviar.Click += btnEnviar_Click;
+            btnEnviar.Click += EnviarMensagem;
             // 
             // Form1
             // 
